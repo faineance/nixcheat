@@ -41,7 +41,6 @@ fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*c
             let end = usize::from_str_radix(&unwrapped[14..25], 16).unwrap() as *const u8;
             return Ok(Some(start..end))
         }
-
     }
     Ok(None)
 }
@@ -60,7 +59,9 @@ impl Handle {
         let pid = get_pid(process).unwrap_or_else(|| { 
             panic!("Could not find pid of process: {}. Is it running?", process) 
         });
-        let module = get_module(module_name, pid).unwrap().unwrap_or_else(|| {
+        let module = get_module(module_name, pid).unwrap_or_else(|e| {
+            panic!("Could not open /proc/{}/maps: {}", pid, e) 
+        }).unwrap_or_else(|| {
             panic!("Could not find module: {} for process {}. Are you sure it's loaded?", module_name, process) 
         });
         Handle {
