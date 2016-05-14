@@ -30,7 +30,7 @@ pub fn is_root() -> bool {
     unsafe {libc::getuid() == 0}
 }
 
-fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*const u8>>> {
+fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Module>> {
     let file = try!(File::open(format!("/proc/{}/maps", pid)));
     let maps = BufReader::new(file);
 
@@ -39,16 +39,21 @@ fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*c
         if unwrapped.contains(module_name) {
             let start = usize::from_str_radix(&unwrapped[..8], 16).unwrap() as *const u8;
             let end = usize::from_str_radix(&unwrapped[10..17], 16).unwrap() as *const u8;
-            return Ok(Some(start..end))
+            return Ok(Some(Module(start..end)))
         }
     }
     Ok(None)
 }
 
 #[derive(Debug, Clone)]
+pub struct Module(Range<*const u8>);
+unsafe impl Send for Module {}
+unsafe impl Sync for Module {}
+
+#[derive(Debug, Clone)]
 pub struct Handle {
     pub pid: i32,
-    pub module: Range<*const u8>,
+    pub module: Module,
 }
 
 impl Handle {
