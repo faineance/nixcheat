@@ -1,5 +1,5 @@
-#![feature(libc,plugin)]
-#![plugin(clippy)]
+#![feature(libc)]
+
 extern crate libc;
 
 mod raw;
