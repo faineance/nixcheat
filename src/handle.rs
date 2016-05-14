@@ -31,7 +31,7 @@ pub fn is_root() -> bool {
 }
 
 fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*const u8>>> {
-    let file = try!(File::open(format!("/proc/{}/maps", module_name)));
+    let file = try!(File::open(format!("/proc/{}/maps", pid)));
     let maps = BufReader::new(file);
 
     for line in maps.lines() {
