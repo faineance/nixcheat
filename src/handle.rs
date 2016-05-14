@@ -37,8 +37,8 @@ fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*c
     for line in maps.lines() {
         let unwrapped = line.unwrap();
         if unwrapped.contains(module_name) {
-            let start = u32::from_str_radix(&unwrapped[..8], 16).unwrap() as *const u8;
-            let end = u32::from_str_radix(&unwrapped[10..17], 16).unwrap() as *const u8;
+            let start = usize::from_str_radix(&unwrapped[..8], 16).unwrap() as *const u8;
+            let end = usize::from_str_radix(&unwrapped[10..17], 16).unwrap() as *const u8;
             return Ok(Some(start..end))
         }
     }
@@ -106,5 +106,8 @@ impl Handle {
     pub unsafe fn write_type<T>(&self, address: *mut T, t: T) {
         let buffer = slice::from_raw_parts(&t as *const T as *const u8, mem::size_of::<T>());
         self.write(address as *mut u8, buffer);
+    }
+    pub fn is_running(&self) -> bool {
+        Path::is_dir(format!("/proc/{}", self.pid).as_ref())
     }
 }
