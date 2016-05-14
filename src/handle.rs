@@ -37,8 +37,8 @@ fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Range<*c
     for line in maps.lines() {
         let unwrapped = line.unwrap();
         if unwrapped.contains(module_name) {
-            let start = usize::from_str_radix(&unwrapped[..12], 16).unwrap() as *const u8;
-            let end = usize::from_str_radix(&unwrapped[14..25], 16).unwrap() as *const u8;
+            let start = u32::from_str_radix(&unwrapped[..8], 16).unwrap() as *const u8;
+            let end = u32::from_str_radix(&unwrapped[10..17], 16).unwrap() as *const u8;
             return Ok(Some(start..end))
         }
     }
