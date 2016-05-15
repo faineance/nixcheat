@@ -98,20 +98,20 @@ impl Handle {
             iov_len: size,
         };
 
-        assert!(process_vm_readv(self.pid, local, 1, remote, 1, 0) == size);
+        assert_eq!(process_vm_readv(self.pid, local, 1, remote, 1, 0) == size);
     }
-    pub unsafe fn read_type<T>(&self, address: *const T) -> T {
-        let mut t = mem::uninitialized();
-        let buffer = slice::from_raw_parts_mut(
-            &mut t as *mut T as *mut u8,
-            mem::size_of::<T>());
-        self.read(buffer, address as *const u8, mem::size_of::<T>());
-        t
-    }
-    pub unsafe fn write_type<T>(&self, address: *mut T, t: T) {
-        let buffer = slice::from_raw_parts(&t as *const T as *const u8, mem::size_of::<T>());
-        self.write(address as *mut u8, buffer);
-    }
+    // pub unsafe fn read_type<T>(&self, address: *const T) -> T {
+    //     let mut t = mem::uninitialized();
+    //     let buffer = slice::from_raw_parts_mut(
+    //         &mut t as *mut T as *mut u8,
+    //         mem::size_of::<T>());
+    //     self.read(buffer, address as *const u8, mem::size_of::<T>());
+    //     t
+    // }
+    // pub unsafe fn write_type<T>(&self, address: *mut T, t: T) {
+    //     let buffer = slice::from_raw_parts(&t as *const T as *const u8, mem::size_of::<T>());
+    //     self.write(address as *mut u8, buffer);
+    // }
     pub fn is_running(&self) -> bool {
         Path::is_dir(format!("/proc/{}", self.pid).as_ref())
     }
