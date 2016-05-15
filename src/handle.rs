@@ -98,7 +98,7 @@ impl Handle {
             iov_len: size,
         };
 
-        assert_eq!(process_vm_readv(self.pid, local, 1, remote, 1, 0) == size);
+        assert_eq!(process_vm_readv(self.pid, local, 1, remote, 1, 0), size);
     }
     // pub unsafe fn read_type<T>(&self, address: *const T) -> T {
     //     let mut t = mem::uninitialized();
