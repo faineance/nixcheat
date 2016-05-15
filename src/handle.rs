@@ -46,7 +46,7 @@ fn get_module(module_name: &'static str, pid: i32) -> io::Result<Option<Module>>
 }
 
 #[derive(Debug, Clone)]
-pub struct Module(Range<*const u8>);
+pub struct Module(pub Range<*const u8>);
 unsafe impl Send for Module {}
 unsafe impl Sync for Module {}
 
