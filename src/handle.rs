@@ -74,7 +74,7 @@ impl Handle {
             module: module,
         }
     }
-    unsafe fn write(&self, address: *mut u8, buffer: &[u8]) { 
+    pub unsafe fn write(&self, address: *mut u8, buffer: &[u8]) { 
         let local = iovec {
             iov_base: buffer.as_ptr() as *mut u8 as *mut c_void,
             iov_len: buffer.len()
@@ -87,7 +87,7 @@ impl Handle {
         
         assert_eq!(process_vm_writev(self.pid, local, 1, remote, 1, 0), buffer.len())
     }
-    unsafe fn read(&self, into: &mut [u8], address: *const u8, size: usize) {
+    pub unsafe fn read(&self, into: &mut [u8], address: *const u8, size: usize) {
         let local = iovec {
             iov_base: into.as_mut_ptr() as *mut c_void,
             iov_len: into.len(),
