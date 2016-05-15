@@ -1,8 +1,8 @@
 extern crate libc;
-use libc::c_void;
+
 
 use std::process::Command;
-use libc::iovec;
+
 use std::io::prelude::*;
 use std::fs::File;
 use std::io::BufReader;
@@ -11,9 +11,9 @@ use std::path::Path;
 use std::mem;
 use std::slice;
 use std::ops::Range;
-use raw::{process_vm_readv, process_vm_writev};
-use std::io::ErrorKind;
-
+use libc::*;
+use std::io::Error;
+use std::ptr;
 fn get_pid(name: &'static str) -> Option <i32> {
     let pid = Command::new("pidof")
     .arg(name)
@@ -74,40 +74,47 @@ impl Handle {
             module: module,
         }
     }
-    pub unsafe fn write(&self, address: *mut u8, buffer: &[u8]) { 
+    // pub unsafe fn write(&self, address: *mut u8, buffer: &[u8]) { 
+    //     let local = iovec {
+    //         iov_base: buffer.as_ptr() as *mut u8 as *mut c_void,
+    //         iov_len: buffer.len()
+    //     };
+
+    //     let remote = iovec {
+    //         iov_base: address as *mut c_void,
+    //         iov_len: buffer.len()
+    //     };
+        
+    //     assert_eq!(process_vm_writev(self.pid, local, 1, remote, 1, 0), buffer.len() as libc::ssize_t)
+    // }
+    pub unsafe fn read(&self, address: *const c_void, into: *mut c_void, size: usize) {
         let local = iovec {
-            iov_base: buffer.as_ptr() as *mut u8 as *mut c_void,
-            iov_len: buffer.len()
+            iov_base: into,
+            iov_len: size,
         };
 
         let remote = iovec {
             iov_base: address as *mut c_void,
-            iov_len: buffer.len()
-        };
-        
-        assert_eq!(process_vm_writev(self.pid, local, 1, remote, 1, 0), buffer.len())
-    }
-    pub unsafe fn read(&self, into: &mut [u8], address: *const u8, size: usize) {
-        let local = iovec {
-            iov_base: into.as_mut_ptr() as *mut c_void,
-            iov_len: into.len(),
-        };
-
-        let remote = iovec {
-            iov_base: address as *mut u8 as *mut c_void,
             iov_len: size,
         };
-
-        assert_eq!(process_vm_readv(self.pid, local, 1, remote, 1, 0), size);
+        assert_eq!(process_vm_readv(self.pid as libc::pid_t, &local, 1, &remote, 1, 0), size as libc::ssize_t);
     }
-    // pub unsafe fn read_type<T>(&self, address: *const T) -> T {
-    //     let mut t = mem::uninitialized();
-    //     let buffer = slice::from_raw_parts_mut(
-    //         &mut t as *mut T as *mut u8,
-    //         mem::size_of::<T>());
-    //     self.read(buffer, address as *const u8, mem::size_of::<T>());
-    //     t
-    // }
+    pub unsafe fn read_type<T>(&self, address: *const c_void) -> T {
+        let mut result: T = mem::uninitialized();
+
+        let length = mem::size_of::<T>();
+
+        let mut bytes: Vec<u8> = unsafe {
+                let mut vec = Vec::with_capacity(length);
+                vec.set_len(length);
+                vec
+        };
+        self.read(address, bytes.as_mut_ptr() as *mut libc::c_void, mem::size_of::<u32>());
+        // println!("{:?}", );
+        ptr::copy_nonoverlapping(bytes.as_ptr(), &mut result as *mut _ as *mut u8, length);
+        println!("{:?}", bytes );
+        result
+    }
     // pub unsafe fn write_type<T>(&self, address: *mut T, t: T) {
     //     let buffer = slice::from_raw_parts(&t as *const T as *const u8, mem::size_of::<T>());
     //     self.write(address as *mut u8, buffer);
