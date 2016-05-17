@@ -109,10 +109,8 @@ impl Handle {
                 vec.set_len(length);
                 vec
         };
-        self.read(address, bytes.as_mut_ptr() as *mut libc::c_void, mem::size_of::<u32>());
-        // println!("{:?}", );
+        self.read(address, bytes.as_mut_ptr() as *mut libc::c_void, length);
         ptr::copy_nonoverlapping(bytes.as_ptr(), &mut result as *mut _ as *mut u8, length);
-        println!("{:?}", bytes );
         result
     }
     // pub unsafe fn write_type<T>(&self, address: *mut T, t: T) {
